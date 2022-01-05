@@ -11,6 +11,6 @@ public class MailingSender {
                 new Mailing()
         );
 
-        myTreadMailing.run();
+        myTreadMailing.start();
     }
 }

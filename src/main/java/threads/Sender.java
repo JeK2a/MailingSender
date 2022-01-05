@@ -69,9 +69,9 @@ public class Sender implements Runnable {
 
                 JSONObject jsonArray = (JSONObject) getArrayFromJSON(response);
 
-                String tmp = String.valueOf(jsonArray.get("tmp"));
+//                String tmp = String.valueOf(jsonArray.get("tmp"));
 
-                String answer = String.valueOf(jsonArray.get("answer"));
+                String answer   = String.valueOf(jsonArray.get("answer"));
                 int count       = Integer.parseInt(String.valueOf(jsonArray.get("count")));
                 int count_done  = Integer.parseInt(String.valueOf(jsonArray.get("count_done")));
                 int count_error = Integer.parseInt(String.valueOf(jsonArray.get("count_error")));
@@ -87,7 +87,6 @@ public class Sender implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private static Object getArrayFromJSON(String jsonStr) {

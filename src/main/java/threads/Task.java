@@ -22,6 +22,6 @@ public class Task implements Runnable {
             )
         );
 
-        myTreadSender.run();
+        myTreadSender.start();
     }
 }

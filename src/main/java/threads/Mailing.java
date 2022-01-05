@@ -17,6 +17,6 @@ public class Mailing implements Runnable {
             )
         );
 
-        myTreadTask.run();
+        myTreadTask.start();
     }
 }
