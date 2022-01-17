@@ -20,31 +20,47 @@ import service.SettingsMail;
 
 public class Sender implements Runnable {
 
-    String pattern_id;
-    String maillist_id;
-    String task_id;
+    private static int count  = 0;
+    private static int number = 0;
+
+    private int pattern_id;
+    private int maillist_id;
+    private int task_id;
+
+    private boolean stop = false;
+
+    Thread thread;
 
     public Sender(int pattern_id, int maillist_id, int task_id) {
-        this.pattern_id  = String.valueOf(pattern_id);
-        this.maillist_id = String.valueOf(maillist_id);
-        this.task_id     = String.valueOf(task_id);
+        this.pattern_id  = pattern_id;
+        this.maillist_id = maillist_id;
+        this.task_id     = task_id;
+
+        thread = new Thread(this, "Sender " + number);
+        thread.start();
+
+        count++;
+        number++;
     }
 
     @Override
     public void run() {
         try {
-//            while (true) {
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < 3; i++) { // TODO while(true)
+                if (stop) {
+                    break;
+                }
+
                 CloseableHttpClient httpclient = HttpClients.createDefault();
                 HttpPost httpPost = new HttpPost(SettingsMail.getUrl());
 
                 // Request parameters and other properties.
                 List<BasicNameValuePair> params = new ArrayList<>(2);
 
-                params.add(new BasicNameValuePair("pattern_id", pattern_id));
-                params.add(new BasicNameValuePair("maillist_id", maillist_id));
-                params.add(new BasicNameValuePair("task_id", task_id));
                 params.add(new BasicNameValuePair("type", "email"));
+                params.add(new BasicNameValuePair("pattern_id",  String.valueOf(pattern_id)));
+                params.add(new BasicNameValuePair("maillist_id", String.valueOf(maillist_id)));
+                params.add(new BasicNameValuePair("task_id",     String.valueOf(task_id)));
 
                 httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
@@ -54,10 +70,9 @@ public class Sender implements Runnable {
 
                 StringBuilder response = new StringBuilder();
 
-                int data;
-
                 if (httpEntity != null) {
                     try (InputStream inputStream = httpEntity.getContent()) {
+                        int data;
                         //                int data = inputStream.read();
                         while ((data = inputStream.read()) != -1) {
                             response.append((char) data);
@@ -102,5 +117,16 @@ public class Sender implements Runnable {
 
     private static Object getArrayFromJSON(StringBuilder jsonStr) {
         return getArrayFromJSON(String.valueOf(jsonStr));
+    }
+
+    @Override
+    protected void finalize() {
+        count--;
+    }
+
+    public boolean stop() {
+        stop = true;
+
+        return true;
     }
 }
