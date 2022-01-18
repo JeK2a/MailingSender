@@ -2,6 +2,7 @@ package threads;
 
 import wss.WSSChatClient;
 
+import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 
 public class Mailing implements Runnable {
@@ -10,21 +11,46 @@ public class Mailing implements Runnable {
 
     @Override
     public void run() {
-        WSSChatClient wssChatClient = new WSSChatClient();
-        wssChatClient.connectToWSS();
+//        WSSChatClient wssChatClient = new WSSChatClient();
+//        wssChatClient.connectToWSS();
 
-        for (int i = 0; i < 10; i++) {
-            WSSChatClient.sendText("Test!", "Test!!!");
-
-            try {
-                Thread.sleep(5000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        Mailing.newTask(1214, 892, 1302); // TODO Test
 
 
-        wssChatClient.closeWSS();
+
+//        for (int i = 0; i < 10; i++) {
+//            try {
+//                Thread.sleep(2000);
+//                System.out.print(
+//                        "("
+//                                + Thread.activeCount() + ","
+//                                + ManagementFactory.getThreadMXBean().getThreadCount() + ","
+////                + ManagementFactory.getRuntimeMXBean().getName() + ","
+////                + ManagementFactory.getMemoryMXBean().getObjectPendingFinalizationCount()
+//                                + ") == "
+//                );
+//                System.out.println(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed() / 1024 / 1024);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
+        //          = ;
+//         = ;
+//             = ;
+
+//        for (int i = 0; i < 10; i++) {
+//            WSSChatClient.sendText("Test!", "Test!!!");
+//
+//            try {
+//                Thread.sleep(5000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
+
+//        wssChatClient.closeWSS();
     }
 
     public static void newTask(int pattern_id, int maillist_id, int task_id) {

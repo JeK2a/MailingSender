@@ -11,7 +11,7 @@ public class Task implements Runnable {
 
     private static int count  = 0;
     private static int number = 0;
-    private int count_senders = 5;
+    private int count_senders = 1;
 
     private Thread thread;
 
@@ -37,18 +37,18 @@ public class Task implements Runnable {
             newSender(pattern_id, maillist_id, task_id);
         }
 
-        while (true) {
-            try {
-                Thread.sleep(5000);
-
-                if (stop) {
-                    break;
-                }
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+//        while (true) {
+//            try {
+//                Thread.sleep(5000);
+//
+//                if (stop) {
+//                    break;
+//                }
+//
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
     }
 
     public static void newSender(int pattern_id, int maillist_id, int task_id) {

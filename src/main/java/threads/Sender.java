@@ -22,6 +22,7 @@ public class Sender implements Runnable {
 
     private static int count  = 0;
     private static int number = 0;
+    private static int n = 0;
 
     private int pattern_id;
     private int maillist_id;
@@ -46,7 +47,7 @@ public class Sender implements Runnable {
     @Override
     public void run() {
         try {
-            for (int i = 0; i < 3; i++) { // TODO while(true)
+            for (int i = 0; i < 1; i++) { // TODO while(true)
                 if (stop) {
                     break;
                 }
@@ -80,11 +81,9 @@ public class Sender implements Runnable {
                     }
                 }
 
-                System.out.println(response);
+//                System.out.println(response);
 
                 JSONObject jsonArray = (JSONObject) getArrayFromJSON(response);
-
-//                String tmp = String.valueOf(jsonArray.get("tmp"));
 
                 String answer   = String.valueOf(jsonArray.get("answer"));
                 int count       = Integer.parseInt(String.valueOf(jsonArray.get("count")));
@@ -92,16 +91,20 @@ public class Sender implements Runnable {
                 int count_error = Integer.parseInt(String.valueOf(jsonArray.get("count_error")));
                 int count_total = Integer.parseInt(String.valueOf(jsonArray.get("count_total")));
 
-                System.out.println(answer);
+//                System.out.println(answer);
 
-                System.out.println(count);
-                System.out.println(count_done);
-                System.out.println(count_error);
-                System.out.println(count_total);
+                System.out.println("count - " + ++n);
+
+//                System.out.println(count);
+//                System.out.println(count_done);
+//                System.out.println(count_error);
+//                System.out.println(count_total);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+//        return;
     }
 
     private static Object getArrayFromJSON(String jsonStr) {
