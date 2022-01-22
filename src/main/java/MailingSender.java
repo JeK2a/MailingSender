@@ -1,29 +1,30 @@
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import service.SettingsMail;
 import threads.Mailing;
+import wss.WSSChatClient;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class MailingSender {
     public static void main(String[] args) {
-
-//        SettingsMail settings_mail = new SettingsMail();
         new SettingsMail();
 
-        Thread myTreadMailing = new Thread(
-                new Mailing()
-        );
+        Mailing mailing = new Mailing();
+        WSSChatClient wssChatClient = new WSSChatClient(mailing);
+        wssChatClient.connectToWSS();
 
-        myTreadMailing.setName("Mailing");
+        while (true) {
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
-        myTreadMailing.start();
-
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            showThreads();
         }
-
-        showThreads();
     }
 
     private static void showThreads() {
@@ -54,17 +55,17 @@ public class MailingSender {
             String threadName = thread.getName();
 
             String regex =
+                (
                     (
-                            (
-                                    (
-                                            threadName.indexOf("-") < threadName.indexOf(" ") &&
-                                                    threadName.contains("-")
-                                    ) ||
-                                            !threadName.contains(" ")
-                            ) ?
-                                    "-" :
-                                    " "
-                    );
+                        (
+                            threadName.indexOf("-") < threadName.indexOf(" ") &&
+                            threadName.contains("-")
+                        ) ||
+                        !threadName.contains(" ")
+                    ) ?
+                        "-" :
+                        " "
+                );
 
             String[] arr_srt = threadName.split(regex);
 

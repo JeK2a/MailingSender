@@ -22,7 +22,9 @@ public class Sender implements Runnable {
 
     private static int count  = 0;
     private static int number = 0;
-    private static int n = 0;
+    private static int j = 0;
+
+    private int sender_number;
 
     private int pattern_id;
     private int maillist_id;
@@ -37,6 +39,8 @@ public class Sender implements Runnable {
         this.maillist_id = maillist_id;
         this.task_id     = task_id;
 
+        sender_number = number;
+
         thread = new Thread(this, "Sender " + number);
         thread.start();
 
@@ -47,7 +51,7 @@ public class Sender implements Runnable {
     @Override
     public void run() {
         try {
-            for (int i = 0; i < 1; i++) { // TODO while(true)
+            for (int i = 0; i < 10; i++) { // TODO while(true)
                 if (stop) {
                     break;
                 }
@@ -93,7 +97,7 @@ public class Sender implements Runnable {
 
 //                System.out.println(answer);
 
-                System.out.println("count - " + ++n);
+                System.out.println(sender_number + " count - " + ++j);
 
 //                System.out.println(count);
 //                System.out.println(count_done);
@@ -131,5 +135,38 @@ public class Sender implements Runnable {
         stop = true;
 
         return true;
+    }
+
+    public static int getCount() {
+        return count;
+    }
+
+    public int getSender_number() {
+        return sender_number;
+    }
+
+    public int getPattern_id() {
+        return pattern_id;
+    }
+
+    public int getMaillist_id() {
+        return maillist_id;
+    }
+
+    public int getTask_id() {
+        return task_id;
+    }
+
+    public boolean isStop() {
+        return stop;
+    }
+
+    public Thread getThread() {
+        return thread;
+    }
+
+    @Override
+    public String toString() {
+        return "sn:" + sender_number;
     }
 }
