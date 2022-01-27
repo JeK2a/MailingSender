@@ -41,7 +41,7 @@ public class Sender implements Runnable {
 
         sender_number = number;
 
-        thread = new Thread(this, "Sender " + number);
+        thread = new Thread(this, "Sender " + sender_number);
         thread.start();
 
         count++;
@@ -50,9 +50,12 @@ public class Sender implements Runnable {
 
     @Override
     public void run() {
+        System.out.println("sender run");
         try {
-            for (int i = 0; i < 10; i++) { // TODO while(true)
-                if (stop) {
+//            for (int i = 0; i < 10; i++) { // TODO while(true)
+            while (true) {
+                if (isStop()) {
+                    System.out.println("sender break");
                     break;
                 }
 
@@ -95,6 +98,8 @@ public class Sender implements Runnable {
                 int count_error = Integer.parseInt(String.valueOf(jsonArray.get("count_error")));
                 int count_total = Integer.parseInt(String.valueOf(jsonArray.get("count_total")));
 
+                // TODO обработать завершение рассылки
+
 //                System.out.println(answer);
 
                 System.out.println(sender_number + " count - " + ++j);
@@ -104,8 +109,17 @@ public class Sender implements Runnable {
 //                System.out.println(count_error);
 //                System.out.println(count_total);
             }
-        } catch (IOException e) {
+
+            System.err.println("end");
+        } catch (Throwable e) {
+            System.err.println(e.getMessage());
+            System.err.println(e.getLocalizedMessage());
             e.printStackTrace();
+        } finally {
+            stop = true;
+            count--;
+
+            System.out.println("sender finally");
         }
 
 //        return;
@@ -133,6 +147,17 @@ public class Sender implements Runnable {
 
     public boolean stop() {
         stop = true;
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        if (thread.isAlive()) {
+//            thread.stop(); // TODO убить поток
+            thread.isInterrupted();
+        }
 
         return true;
     }

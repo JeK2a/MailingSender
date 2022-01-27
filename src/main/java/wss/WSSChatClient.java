@@ -63,24 +63,25 @@ public class WSSChatClient {
 
                     JSONObject json;
                     ArrayList<JSONObject> tasks_list;
+                    HashMap<String, Integer> task_map;
 
                     System.out.println("command: " + command);
 
                     switch (command) {
                         // TODO get_tasks получить информацию о запущенных задачаз
-                        case "get_tasks":
+                        case "tasks":
                             sendText("tasks", mailing.toString());
 
                             break;
                         case "tasks_start":
 //                            String jsonStr = "{\"tesks\":[{\"position\":\"1\",\"task_id\":1302,\"maillist_id\":892,\"pattern_id\":1214},{\"position\":\"2\",\"task_id\":1318,\"maillist_id\":820,\"pattern_id\":1224}],\"count_streams\":\"5\"}";
 
-                            json              = (JSONObject) JSONValue.parse(data_in);
+                            json = (JSONObject) JSONValue.parse(data_in);
 
                             System.out.println(json);
 
                             int count_streams = Integer.parseInt(String.valueOf(json.get("count_streams")));
-                            tasks_list        = (ArrayList<JSONObject>) json.get("tesks");
+                            tasks_list        = (ArrayList<JSONObject>) json.get("tasks");
 
                             System.out.println(tasks_list);
 
@@ -88,7 +89,7 @@ public class WSSChatClient {
                                 for (JSONObject task_json : tasks_list) {
                                     System.out.println(task_json);
 
-                                    HashMap<String, Integer> task_map = (HashMap<String, Integer>) task_json;
+                                    task_map = (HashMap<String, Integer>) task_json;
 
                                     System.out.println(task_map.size());
 
@@ -104,26 +105,51 @@ public class WSSChatClient {
 
                                     sendText("tasks", mailing.toString()); // TODO подтверждение запуска
                                 }
+                            } else {
+                                System.err.println("Запущенных задач не обнаружено");
                             }
 
                             break;
                         case "tasks_stop":
                             json       = (JSONObject) JSONValue.parse(data_in);
-                            tasks_list = (ArrayList<JSONObject>) json.get("tesks");
 
+                            System.out.println("json " + json);
+
+                            tasks_list = (ArrayList<JSONObject>) json.get("tasks");
+
+                            System.out.println("tasks_list " + tasks_list);
+
+                            System.out.println("tasks_list");
                             System.out.println(tasks_list);
 
                             if (tasks_list != null) {
+                                System.out.println("tasks_list.count " + tasks_list.size());
+
+
                                 for (JSONObject task_json : tasks_list) {
                                     System.out.println(task_json);
 
-                                    HashMap<String, Integer> task_map = (HashMap<String, Integer>) task_json;
+                                    task_map = (HashMap<String, Integer>) task_json;
 
-                                    task_id     = task_map.get("task_id");
+                                    System.out.println(task_map.size());
+
+                                    task_id     = Integer.parseInt(String.valueOf(task_map.get("task_id")));
 
                                     mailing.delTask(task_id);
+                                    // TODO проверять запущена ли уже задача
+                                    // TODO уменьшение количество потоков, переделать на количество писем в час
+
+                                    Thread.sleep(500);
+
+                                    sendText("tasks", mailing.toString()); // TODO подтверждение запуска
                                 }
+                            } else {
+                                System.out.println("tasks_list == null");
                             }
+
+                            Thread.sleep(500);
+
+                            sendText("tasks", mailing.toString()); // TODO подтверждение остановки
 
                             break;
 //                            case "":
@@ -181,15 +207,19 @@ public class WSSChatClient {
             webSocket.addListener(webSocketAdapter);
             webSocket.connect();
             result = true;
+
+            sendText("tasks", mailing.toString());
         } catch (com.neovisionaries.ws.client.WebSocketException e) {
             System.out.println("Не удалось переподключиться к WSS сокету");
             Thread.sleep(30000);
+
             return connectToWSS();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             WSSChatClient.result = result;
-            return result;
+
+            return result; // TODO поправить
         }
     }
 

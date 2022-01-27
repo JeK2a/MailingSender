@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Mailing implements Runnable {
 
     private final HashMap <Integer, Task> map_tasks = new HashMap<>();
+    private int count_tasks = 0;
 
     private Thread thread;
     private boolean stop = false;
@@ -21,39 +22,13 @@ public class Mailing implements Runnable {
 
     @Override
     public void run() {
-//        newTask(1214, 892, 1302, 5); // TODO Test
-
-//        for (int i = 0; i < 10; i++) {
-//            try {
-//                Thread.sleep(2000);
-//                System.out.print(
-//                        "("
-//                                + Thread.activeCount() + ","
-//                                + ManagementFactory.getThreadMXBean().getThreadCount() + ","
-////                + ManagementFactory.getRuntimeMXBean().getName() + ","
-////                + ManagementFactory.getMemoryMXBean().getObjectPendingFinalizationCount()
-//                                + ") == "
-//                );
-//                System.out.println(ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed() / 1024 / 1024);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
-        //          = ;
-//         = ;
-//             = ;
-
-//        for (int i = 0; i < 10; i++) {
-//            WSSChatClient.sendText("Test!", "Test!!!");
-//
-//            try {
-//                Thread.sleep(5000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
+        while (true) {
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
 //        wssChatClient.closeWSS();
     }
@@ -68,10 +43,19 @@ public class Mailing implements Runnable {
                 count_streams
             )
         );
+
+        count_tasks++;
     }
 
     public void delTask(int task_id) {
-        map_tasks.get(task_id).stop();
+        System.out.println("delTask(int task_id) " + task_id);
+
+        if (map_tasks.get(task_id).stop()) {
+            map_tasks.remove(task_id);
+            System.out.println("Задача была удалена");
+        } else {
+            System.err.println("Не удалось удалить задачу " + task_id);
+        }
     }
 
     @Override
@@ -81,15 +65,12 @@ public class Mailing implements Runnable {
         String tasks_str = "";
 
         for (Map.Entry<Integer, Task> entry : map_tasks.entrySet()) {
-            json.append(entry.getValue().getTask_id()).append("(" + entry.getValue().getMap_senders() + "),");
-            tasks_str += entry.getValue().getTask_id() + "(" + entry.getValue().getMap_senders() + "),"; // TODO
-//            json.append("\"").append(entry.getKey().replace("\"", "\\\\\"")).append("\": ").append(entry.getValue()).append(",");
+            json.append(entry.getValue().getTask_id()).append(","); // TODO
+//            json.append(entry.getValue().getTask_id()).append("(").append(entry.getValue().getMap_senders()).append("),");
         }
 
         if (map_tasks.size() > 0) {
-//            json.substring(0, json.length() - 1);
-            tasks_str.substring(0, tasks_str.length() - 1);
-//            s.substring(0, s.length() - 1)
+            json = new StringBuilder(json.substring(0, json.length() - 1));
         }
 
         json.append(tasks_str);

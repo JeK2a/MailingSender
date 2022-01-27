@@ -25,6 +25,8 @@ public class MailingSender {
 
             showThreads();
         }
+
+        // TODO проверять и перезапускать WSS
     }
 
     private static void showThreads() {
