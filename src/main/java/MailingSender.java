@@ -18,15 +18,14 @@ public class MailingSender {
 
         while (true) {
             try {
-                Thread.sleep(10000);
+                Thread.sleep(30000);
+                wssChatClient.connectToWSS(); // TODO проверять и перезапускать WSS
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
 
             showThreads();
         }
-
-        // TODO проверять и перезапускать WSS
     }
 
     private static void showThreads() {
