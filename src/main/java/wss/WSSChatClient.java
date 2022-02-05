@@ -3,7 +3,6 @@ package wss;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketFactory;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
@@ -16,7 +15,6 @@ import java.text.CharacterIterator;
 import java.text.StringCharacterIterator;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class WSSChatClient {
     private static WebSocket webSocket = null;
@@ -53,17 +51,17 @@ public class WSSChatClient {
 
                     String command = String.valueOf(jsonArray.get("subject"));
 //                    String command = String.valueOf(jsonArray.get("message"));
-                    String data_in = String.valueOf(jsonArray.get("message"));
+                    String dataIn = String.valueOf(jsonArray.get("message"));
 
-                    System.out.println(data_in);
+                    System.out.println(dataIn);
 
-                    int pattern_id;
-                    int maillist_id;
-                    int task_id;
+                    int patternId;
+                    int maillistId;
+                    int taskId;
 
                     JSONObject json;
-                    ArrayList<JSONObject> tasks_list;
-                    HashMap<String, Integer> task_map;
+                    ArrayList<JSONObject> tasksList;
+                    HashMap<String, Integer> mapTask;
 
                     System.out.println("command: " + command);
 
@@ -76,32 +74,32 @@ public class WSSChatClient {
                         case "tasks_start":
 //                            String jsonStr = "{\"tesks\":[{\"position\":\"1\",\"task_id\":1302,\"maillist_id\":892,\"pattern_id\":1214},{\"position\":\"2\",\"task_id\":1318,\"maillist_id\":820,\"pattern_id\":1224}],\"count_streams\":\"5\"}";
 
-                            json = (JSONObject) JSONValue.parse(data_in);
+                            json = (JSONObject) JSONValue.parse(dataIn);
 
                             System.out.println(json);
 
-                            int count_streams = Integer.parseInt(String.valueOf(json.get("count_streams")));
-                            tasks_list        = (ArrayList<JSONObject>) json.get("tasks");
+                            int countStreams = Integer.parseInt(String.valueOf(json.get("count_streams")));
+                            tasksList        = (ArrayList<JSONObject>) json.get("tasks");
 
-                            System.out.println(tasks_list);
+                            System.out.println(tasksList);
 
-                            if (tasks_list != null) {
-                                for (JSONObject task_json : tasks_list) {
-                                    System.out.println(task_json);
+                            if (tasksList != null) {
+                                for (JSONObject jsonObject : tasksList) {
+                                    System.out.println(jsonObject);
 
-                                    task_map = (HashMap<String, Integer>) task_json;
+                                    mapTask = (HashMap<String, Integer>) jsonObject;
 
-                                    System.out.println(task_map.size());
+                                    System.out.println(mapTask.size());
 
-                                    pattern_id  = Integer.parseInt(String.valueOf(task_map.get("pattern_id")));
-                                    maillist_id = Integer.parseInt(String.valueOf(task_map.get("maillist_id")));
-                                    task_id     = Integer.parseInt(String.valueOf(task_map.get("task_id")));
+                                    patternId  = Integer.parseInt(String.valueOf(mapTask.get("pattern_id")));
+                                    maillistId = Integer.parseInt(String.valueOf(mapTask.get("maillist_id")));
+                                    taskId     = Integer.parseInt(String.valueOf(mapTask.get("task_id")));
 
-                                    mailing.newTask(pattern_id, maillist_id, task_id, count_streams);
+                                    mailing.newTask(patternId, maillistId, taskId, countStreams);
                                     // TODO проверять запущена ли уже задача
                                     // TODO уменьшение количество потоков, переделать на количество писем в час
 
-                                    Thread.sleep(500);
+//                                    Thread.sleep(500);
 
                                     sendText("tasks", mailing.toString()); // TODO подтверждение запуска
                                 }
@@ -111,35 +109,35 @@ public class WSSChatClient {
 
                             break;
                         case "tasks_stop":
-                            json       = (JSONObject) JSONValue.parse(data_in);
+                            json       = (JSONObject) JSONValue.parse(dataIn);
 
                             System.out.println("json " + json);
 
-                            tasks_list = (ArrayList<JSONObject>) json.get("tasks");
+                            tasksList = (ArrayList<JSONObject>) json.get("tasks");
 
-                            System.out.println("tasks_list " + tasks_list);
+                            System.out.println("tasks_list " + tasksList);
 
                             System.out.println("tasks_list");
-                            System.out.println(tasks_list);
+                            System.out.println(tasksList);
 
-                            if (tasks_list != null) {
-                                System.out.println("tasks_list.count " + tasks_list.size());
+                            if (tasksList != null) {
+                                System.out.println("tasks_list.count " + tasksList.size());
 
 
-                                for (JSONObject task_json : tasks_list) {
-                                    System.out.println(task_json);
+                                for (JSONObject jsonObject : tasksList) {
+                                    System.out.println(jsonObject);
 
-                                    task_map = (HashMap<String, Integer>) task_json;
+                                    mapTask = (HashMap<String, Integer>) jsonObject;
 
-                                    System.out.println(task_map.size());
+                                    System.out.println(mapTask.size());
 
-                                    task_id     = Integer.parseInt(String.valueOf(task_map.get("task_id")));
+                                    taskId     = Integer.parseInt(String.valueOf(mapTask.get("task_id")));
 
-                                    mailing.delTask(task_id);
+                                    mailing.delTask(taskId);
                                     // TODO проверять запущена ли уже задача
                                     // TODO уменьшение количество потоков, переделать на количество писем в час
 
-                                    Thread.sleep(500);
+//                                    Thread.sleep(500);
 
                                     sendText("tasks", mailing.toString()); // TODO подтверждение запуска
                                 }
@@ -147,7 +145,7 @@ public class WSSChatClient {
                                 System.out.println("tasks_list == null");
                             }
 
-                            Thread.sleep(500);
+//                            Thread.sleep(500);
 
                             sendText("tasks", mailing.toString()); // TODO подтверждение остановки
 
@@ -194,7 +192,8 @@ public class WSSChatClient {
         boolean result = false;
 
         try {
-            if (webSocket != null && webSocket.isOpen()) {
+//            if (webSocket != null && webSocket.isOpen()) {
+            if (checkWSS()) {
                 webSocket.sendClose();
                 webSocket.disconnect();
             }
@@ -223,11 +222,19 @@ public class WSSChatClient {
         }
     }
 
+    public boolean checkWSS() {
+        if (webSocket != null && webSocket.isOpen()) {
+            return true;
+        }
+
+        return false;
+    }
+
     public boolean closeWSS() {
        return webSocket.sendClose() != null;
     }
 
-    public static void sendText(String subject, String text) {
+    public void sendText(String subject, String text) {
         if (webSocket != null && webSocket.isOpen()) {
             text = forJSON(text);
             webSocket.sendText("{\"to\":\"worker:javamail_mailing\", \"subject\":\"" + subject + "\", \"message\":\"" + text + "\"}");

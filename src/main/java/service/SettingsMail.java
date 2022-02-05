@@ -13,7 +13,7 @@ import java.io.IOException;
 public class SettingsMail {
 
     private static String url;
-    private static String url_wss;
+    private static String urlWss;
 
     public SettingsMail() {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -41,7 +41,7 @@ public class SettingsMail {
 
                 switch (childElement.getTagName()) {
                     case "url":     url     = text; break;
-                    case "url_wss": url_wss = text; break;
+                    case "url_wss": urlWss = text; break;
                 }
             }
         }
@@ -52,6 +52,6 @@ public class SettingsMail {
     }
 
     public static String getUrlWSS() {
-        return url_wss;
+        return urlWss;
     }
 }

@@ -1,36 +1,50 @@
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import service.SettingsMail;
 import threads.Mailing;
 import wss.WSSChatClient;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
 public class MailingSender {
     public static void main(String[] args) {
-        new SettingsMail();
+        Mailing mailing             = null;
+        WSSChatClient wssChatClient = null;
 
-        Mailing mailing = new Mailing();
-        WSSChatClient wssChatClient = new WSSChatClient(mailing);
-        wssChatClient.connectToWSS();
+        try {
+            new SettingsMail();
 
-        while (true) {
-            try {
-                Thread.sleep(30000);
-                wssChatClient.connectToWSS(); // TODO проверять и перезапускать WSS
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            mailing       = new Mailing();
+            wssChatClient = new WSSChatClient(mailing);
+            wssChatClient.connectToWSS();
+
+            while (true) {
+                try {
+                    Thread.sleep(30000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                if (!wssChatClient.checkWSS()) {
+                    wssChatClient.connectToWSS();
+                }
+//                wssChatClient.connectToWSS(); // TODO проверять и перезапускать WSS
+                showThreads();
+
+                wssChatClient.sendText("tasks", mailing.toString());
             }
 
-            showThreads();
+        } catch (Throwable e) {
+            e.printStackTrace();
+            System.out.println(e.getMessage());
+            System.out.println(e.getLocalizedMessage());
+        } finally {
+            wssChatClient.closeWSS();
         }
     }
 
     private static void showThreads() {
         ThreadGroup rootGroup = Thread.currentThread().getThreadGroup();
         ThreadGroup parent;
+
         while ((parent = rootGroup.getParent()) != null) {
             rootGroup = parent;
         }
@@ -68,10 +82,10 @@ public class MailingSender {
                         " "
                 );
 
-            String[] arr_srt = threadName.split(regex);
+            String[] arrSrt = threadName.split(regex);
 
-            if (arr_srt.length > 1) {
-                threadName = arr_srt[0];
+            if (arrSrt.length > 1) {
+                threadName = arrSrt[0];
             }
 
             hashMap.compute(threadName, (key, value) -> (value == null) ? 1 : value + 1);

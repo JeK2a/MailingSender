@@ -5,28 +5,29 @@ import java.util.Map;
 
 public class Task implements Runnable {
 
-    private int pattern_id;
-    private int maillist_id;
-    private int task_id;
-    private int count_streams;
+    private int patternId;
+    private int maillistId;
+    private int taskId;
+    private int countStreams;
     private static int count = 0;
 
     private Thread thread;
     private boolean stop = false;
+    private boolean end  = false;
 
-    private HashMap<Integer, Sender> map_senders = new HashMap<>();
-    private int count_senders = 0; // TODO количество отправщиков должно соответствовать количеству потоков
-    private int number_sender = 0;
+    private HashMap<Integer, Sender> mapSenders = new HashMap<>();
+    private int countSenders = 0; // TODO количество отправщиков должно соответствовать количеству потоков
+    private int numberSender = 0;
 
-    public Task(int pattern_id, int maillist_id, int task_id, int count_streams) {
-        this.pattern_id    = pattern_id;
-        this.maillist_id   = maillist_id;
-        this.task_id       = task_id;
-        this.count_streams = count_streams; // TODO
+    public Task(int patternId, int maillistId, int taskId, int countStreams) {
+        this.patternId = patternId;
+        this.maillistId = maillistId;
+        this.taskId = taskId;
+        this.countStreams = countStreams; // TODO
 
         count++;
 
-        thread = new Thread(this, "Task " + task_id);
+        thread = new Thread(this, "Task " + taskId);
         thread.start();
     }
 
@@ -34,40 +35,30 @@ public class Task implements Runnable {
     public void run() {
         System.out.println("task run");
         try {
-            System.out.println(count_streams);
+            System.out.println(countStreams);
 
-            for (int i = 0; i < count_streams; i++) {
-                newSender(pattern_id, maillist_id, task_id);
+            for (int i = 0; i < countStreams; i++) {
+                newSender(patternId, maillistId, taskId);
                 System.out.println("new Sender " + i);
 
             }
 
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            System.out.println(mapSenders.size());
+            System.out.println(mapSenders);
 
-            System.out.println(map_senders.size());
-
-            System.out.println(map_senders);
-
-            while (true) {
+            while (!isStop() && !isEnd()) {
                 if (isStop()) {
                     System.out.println("task break");
                     break;
                 }
 
-                for (Map.Entry<Integer, Sender> entry : map_senders.entrySet()) {
-                    int sender_id = entry.getKey();
+                for (Map.Entry<Integer, Sender> entry : mapSenders.entrySet()) {
+                    int senderId  = entry.getKey();
+                    Sender sender = mapSenders.get(senderId);
 
-                    Sender sender = map_senders.get(sender_id);
-
-                    if (cheackSender(sender)) {
-
-                    } else {
-                        map_senders.remove(sender.getSender_number());
-                        count_senders--;
+                    if (!cheackSender(sender)) {
+                        mapSenders.remove(sender.getSenderNumber());
+                        countSenders--;
                     }
                 }
 
@@ -92,28 +83,28 @@ public class Task implements Runnable {
         }
     }
 
-    public void newSender(int pattern_id, int maillist_id, int task_id) {
-        map_senders.put(
-            number_sender++,
+    public void newSender(int patternId, int maillistId, int taskId) {
+        mapSenders.put(
+            numberSender++,
             new Sender(
-                pattern_id,
-                maillist_id,
-                task_id
+                patternId,
+                maillistId,
+                taskId
             )
         );
 
-        count_senders++;
+        countSenders++;
     }
 
     public boolean stop() {
-        System.out.println("count              =" + count);
-        System.out.println("count_senders      =" + count_senders);
-        System.out.println("map_senders.size() = " + map_senders.size());
+        System.out.println("count              = " + count);
+        System.out.println("count_senders      = " + countSenders);
+        System.out.println("map_senders.size() = " + mapSenders.size());
 
-        for (Map.Entry<Integer, Sender> entry : map_senders.entrySet()) { // TODO java.util.ConcurrentModificationException
-            int sender_id = entry.getKey();
+        for (Map.Entry<Integer, Sender> entry : mapSenders.entrySet()) { // TODO java.util.ConcurrentModificationException
+            int senderId = entry.getKey();
 
-            Sender sender = map_senders.get(sender_id);
+            Sender sender = mapSenders.get(senderId);
 
 //            if (!sender.isStop() || sender.stop()) { // TODO проверять жив ли поток отправщика
 //
@@ -127,45 +118,33 @@ public class Task implements Runnable {
                 }
             }
 
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Thread threadTmp = sender.getThread();
 
-            Thread thread_tmp = sender.getThread();
-
-            if (thread_tmp.isAlive()) {
-                if (thread_tmp.isInterrupted()) {
+            if (threadTmp.isAlive()) {
+                if (threadTmp.isInterrupted()) {
                     System.out.println("thread_tmp.isInterrupted() true");
                 } else {
                     System.out.println("thread_tmp.isInterrupted() false");
                 }
             }
 
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
             if (sender.isStop() ) {
 //                map_senders.remove(sender_id);
-                count_senders--;
+                countSenders--;
             }
         }
 
-        System.out.println("count              =" + count);
-        System.out.println("count_senders      =" + count_senders);
-        System.out.println("map_senders.size() = " + map_senders.size());
+        System.out.println("count              = " + count);
+        System.out.println("count_senders      = " + countSenders);
+        System.out.println("map_senders.size() = " + mapSenders.size());
 
-        if (count_senders == 0) {
-            map_senders = null;
+        if (countSenders == 0) {
+            mapSenders = null;
             stop        = true;
 
             return true;
         } else {
-            System.out.println("Не удалось удалить все отправщики в " + task_id + " (количество оставшихся " + count_senders + ")");
+            System.out.println("Не удалось удалить все отправщики в " + taskId + " (количество оставшихся " + countSenders + ")");
 
             return false;
         }
@@ -173,7 +152,7 @@ public class Task implements Runnable {
 
     public boolean cheackSender(Sender sender) {
         boolean run = true;
-        Thread thread_tmp = sender.getThread();
+        Thread threadTmp = sender.getThread();
 
 //        if (sender.isStop() || !sender.getThread().isAlive()) { // TODO проверять жив ли поток отправщика
 //            if (!sender.isStop()) {
@@ -183,19 +162,19 @@ public class Task implements Runnable {
 //            return false;
 //        }
 
-        if (sender.isStop()) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        if (sender.isEnd()) {
+            run = false;
+            end = true;
+            stop();
+        }
 
+        if (sender.isStop()) {
             run = false;
         }
 
-        if (isStop() && thread_tmp.isAlive()) {
+        if (isStop() && threadTmp.isAlive()) {
 //            thread_tmp.stop(); // TODO убить поток
-            thread_tmp.isInterrupted();
+            threadTmp.isInterrupted();
 
             run = false;
         }
@@ -205,31 +184,36 @@ public class Task implements Runnable {
 
     @Override
     public String toString() {
-        return "{\"pattern_id\": "     + pattern_id    +
-                ",\"maillist_id\": "   + maillist_id   +
-                ",\"task_id\"= "       + task_id       +
-                ",\"count_streams\": " + count_streams +
+        return "{\"pattern_id\": "     + patternId +
+                ",\"maillist_id\": "   + maillistId +
+                ",\"task_id\"= "       + taskId +
+                ",\"count_streams\": " + countStreams +
                 '}';
     }
 
-    public int getPattern_id() {
-        return pattern_id;
+    @Override
+    protected void finalize() {
+        count--;
     }
 
-    public int getMaillist_id() {
-        return maillist_id;
+    public int getPatternId() {
+        return patternId;
     }
 
-    public int getTask_id() {
-        return task_id;
+    public int getMaillistId() {
+        return maillistId;
     }
 
-    public HashMap<Integer, Sender> getMap_senders() {
-        return map_senders;
+    public int getTaskId() {
+        return taskId;
     }
 
-    public int getCount_streams() {
-        return count_streams;
+    public HashMap<Integer, Sender> getMapSenders() {
+        return mapSenders;
+    }
+
+    public int getCountStreams() {
+        return countStreams;
     }
 
     public Thread getThread() {
@@ -240,11 +224,15 @@ public class Task implements Runnable {
         return stop;
     }
 
-    public int getCount_senders() {
-        return count_senders;
+    public boolean isEnd() {
+        return end;
     }
 
-    public int getNumber_sender() {
-        return number_sender;
+    public int getCountSenders() {
+        return countSenders;
+    }
+
+    public int getNumberSender() {
+        return numberSender;
     }
 }

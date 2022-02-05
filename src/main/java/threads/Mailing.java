@@ -1,16 +1,12 @@
 package threads;
 
-import wss.WSSChatClient;
-
-import java.lang.management.ManagementFactory;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class Mailing implements Runnable {
 
-    private final HashMap <Integer, Task> map_tasks = new HashMap<>();
-    private int count_tasks = 0;
+    private final HashMap <Integer, Task> mapTasks = new HashMap<>();
+    private int countTasks = 0;
 
     private Thread thread;
     private boolean stop = false;
@@ -33,28 +29,28 @@ public class Mailing implements Runnable {
 //        wssChatClient.closeWSS();
     }
 
-    public void newTask(int pattern_id, int maillist_id, int task_id, int count_streams) {
-        map_tasks.put(
-            task_id,
+    public void newTask(int patternId, int maillistId, int taskId, int countStreams) {
+        mapTasks.put(
+            taskId,
             new Task(
-                pattern_id,
-                maillist_id,
-                task_id,
-                count_streams
+                patternId,
+                maillistId,
+                taskId,
+                countStreams
             )
         );
 
-        count_tasks++;
+        countTasks++;
     }
 
-    public void delTask(int task_id) {
-        System.out.println("delTask(int task_id) " + task_id);
+    public void delTask(int taskId) {
+        System.out.println("delTask(int task_id) " + taskId);
 
-        if (map_tasks.get(task_id).stop()) {
-            map_tasks.remove(task_id);
+        if (mapTasks.get(taskId).stop()) {
+            mapTasks.remove(taskId);
             System.out.println("Задача была удалена");
         } else {
-            System.err.println("Не удалось удалить задачу " + task_id);
+            System.err.println("Не удалось удалить задачу " + taskId);
         }
     }
 
@@ -62,18 +58,18 @@ public class Mailing implements Runnable {
     public String toString() {
         StringBuilder json = new StringBuilder("{\"tasks\": [");
 
-        String tasks_str = "";
+        String tasksStr = "";
 
-        for (Map.Entry<Integer, Task> entry : map_tasks.entrySet()) {
-            json.append(entry.getValue().getTask_id()).append(","); // TODO
+        for (Map.Entry<Integer, Task> entry : mapTasks.entrySet()) {
+            json.append(entry.getValue().getTaskId()).append(","); // TODO
 //            json.append(entry.getValue().getTask_id()).append("(").append(entry.getValue().getMap_senders()).append("),");
         }
 
-        if (map_tasks.size() > 0) {
+        if (mapTasks.size() > 0) {
             json = new StringBuilder(json.substring(0, json.length() - 1));
         }
 
-        json.append(tasks_str);
+        json.append(tasksStr);
 
         json.append("]}");
 

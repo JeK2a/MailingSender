@@ -11,7 +11,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,24 +23,25 @@ public class Sender implements Runnable {
     private static int number = 0;
     private static int j = 0;
 
-    private int sender_number;
+    private int senderNumber;
 
-    private int pattern_id;
-    private int maillist_id;
-    private int task_id;
+    private int patternId;
+    private int maillistId;
+    private int taskId;
 
     private boolean stop = false;
+    private boolean end  = false;
 
     Thread thread;
 
-    public Sender(int pattern_id, int maillist_id, int task_id) {
-        this.pattern_id  = pattern_id;
-        this.maillist_id = maillist_id;
-        this.task_id     = task_id;
+    public Sender(int patternId, int maillistId, int taskId) {
+        this.patternId  = patternId;
+        this.maillistId = maillistId;
+        this.taskId     = taskId;
 
-        sender_number = number;
+        senderNumber = number;
 
-        thread = new Thread(this, "Sender " + sender_number);
+        thread = new Thread(this, "Sender " + senderNumber);
         thread.start();
 
         count++;
@@ -51,39 +51,32 @@ public class Sender implements Runnable {
     @Override
     public void run() {
         System.out.println("sender run");
+
         try {
-//            for (int i = 0; i < 10; i++) { // TODO while(true)
-            while (true) {
-                if (isStop()) {
-                    System.out.println("sender break");
-                    break;
-                }
+            List<BasicNameValuePair> params = new ArrayList<>(4); // Request parameters and other properties.
 
-                CloseableHttpClient httpclient = HttpClients.createDefault();
-                HttpPost httpPost = new HttpPost(SettingsMail.getUrl());
+            params.add(new BasicNameValuePair("type", "email"));
+            params.add(new BasicNameValuePair("pattern_id",  String.valueOf(patternId)));
+            params.add(new BasicNameValuePair("maillist_id", String.valueOf(maillistId)));
+            params.add(new BasicNameValuePair("task_id",     String.valueOf(taskId)));
 
-                // Request parameters and other properties.
-                List<BasicNameValuePair> params = new ArrayList<>(2);
-
-                params.add(new BasicNameValuePair("type", "email"));
-                params.add(new BasicNameValuePair("pattern_id",  String.valueOf(pattern_id)));
-                params.add(new BasicNameValuePair("maillist_id", String.valueOf(maillist_id)));
-                params.add(new BasicNameValuePair("task_id",     String.valueOf(task_id)));
+            while (!stop && !end) {
+                CloseableHttpClient httpClient = HttpClients.createDefault();
+                HttpPost httpPost              = new HttpPost(SettingsMail.getUrl());
 
                 httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
                 //Execute and get the response.
-                HttpResponse httpResponse = httpclient.execute(httpPost);
-                HttpEntity httpEntity = httpResponse.getEntity();
-
-                StringBuilder response = new StringBuilder();
+                HttpResponse httpResponse = httpClient.execute(httpPost);
+                HttpEntity httpEntity     = httpResponse.getEntity();
+                StringBuilder response    = new StringBuilder();
 
                 if (httpEntity != null) {
+                    int ch;
+
                     try (InputStream inputStream = httpEntity.getContent()) {
-                        int data;
-                        //                int data = inputStream.read();
-                        while ((data = inputStream.read()) != -1) {
-                            response.append((char) data);
+                        while ((ch = inputStream.read()) != -1) {
+                            response.append((char) ch);
                         }
                     }
                 }
@@ -91,25 +84,41 @@ public class Sender implements Runnable {
 //                System.out.println(response);
 
                 JSONObject jsonArray = (JSONObject) getArrayFromJSON(response);
+                String answer        = String.valueOf(jsonArray.get("answer"));
 
-                String answer   = String.valueOf(jsonArray.get("answer"));
-                int count       = Integer.parseInt(String.valueOf(jsonArray.get("count")));
-                int count_done  = Integer.parseInt(String.valueOf(jsonArray.get("count_done")));
-                int count_error = Integer.parseInt(String.valueOf(jsonArray.get("count_error")));
-                int count_total = Integer.parseInt(String.valueOf(jsonArray.get("count_total")));
+                System.out.println(answer);
 
-                // TODO обработать завершение рассылки
+                switch (answer) {
+                    case "Все задачи вополнены":
+                        stop = true;
+                        end  = true;
+                        return;
+                    case "получатель в блеклисте":
+                        break;
+                    default:
+                        System.out.println(senderNumber + " count - " + ++j);
+
+                        int count       = Integer.parseInt(String.valueOf(jsonArray.get("count")));
+                        int countDone  = Integer.parseInt(String.valueOf(jsonArray.get("count_done")));
+                        int countError = Integer.parseInt(String.valueOf(jsonArray.get("count_error")));
+                        int countTotal = Integer.parseInt(String.valueOf(jsonArray.get("count_total")));
+
+                        if (countDone >= countTotal) {
+                            stop = true;
+                            end  = true;
+
+                            return;
+                        }
+
+                        break;
+                }
 
 //                System.out.println(answer);
 
-                System.out.println(sender_number + " count - " + ++j);
-
-//                System.out.println(count);
-//                System.out.println(count_done);
-//                System.out.println(count_error);
-//                System.out.println(count_total);
+                System.out.println("sender while");
             }
 
+            System.out.println("sender break");
             System.err.println("end");
         } catch (Throwable e) {
             System.err.println(e.getMessage());
@@ -148,11 +157,11 @@ public class Sender implements Runnable {
     public boolean stop() {
         stop = true;
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            Thread.sleep(500);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
 
         if (thread.isAlive()) {
 //            thread.stop(); // TODO убить поток
@@ -166,24 +175,28 @@ public class Sender implements Runnable {
         return count;
     }
 
-    public int getSender_number() {
-        return sender_number;
+    public int getSenderNumber() {
+        return senderNumber;
     }
 
-    public int getPattern_id() {
-        return pattern_id;
+    public int getPatternId() {
+        return patternId;
     }
 
-    public int getMaillist_id() {
-        return maillist_id;
+    public int getMaillistId() {
+        return maillistId;
     }
 
-    public int getTask_id() {
-        return task_id;
+    public int getTaskId() {
+        return taskId;
     }
 
     public boolean isStop() {
         return stop;
+    }
+
+    public boolean isEnd() {
+        return end;
     }
 
     public Thread getThread() {
@@ -192,6 +205,6 @@ public class Sender implements Runnable {
 
     @Override
     public String toString() {
-        return "sn:" + sender_number;
+        return "sn:" + senderNumber;
     }
 }
