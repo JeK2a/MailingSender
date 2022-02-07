@@ -60,12 +60,12 @@ public class Sender implements Runnable {
             params.add(new BasicNameValuePair("maillist_id", String.valueOf(maillistId)));
             params.add(new BasicNameValuePair("task_id",     String.valueOf(taskId)));
 
+            CloseableHttpClient httpClient = HttpClients.createDefault();
+            HttpPost httpPost              = new HttpPost(SettingsMail.getUrl());
+
+            httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
+
             while (!stop && !end) {
-                CloseableHttpClient httpClient = HttpClients.createDefault();
-                HttpPost httpPost              = new HttpPost(SettingsMail.getUrl());
-
-                httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
-
                 //Execute and get the response.
                 HttpResponse httpResponse = httpClient.execute(httpPost);
                 HttpEntity httpEntity     = httpResponse.getEntity();
@@ -156,12 +156,6 @@ public class Sender implements Runnable {
 
     public boolean stop() {
         stop = true;
-
-//        try {
-//            Thread.sleep(500);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
 
         if (thread.isAlive()) {
 //            thread.stop(); // TODO убить поток

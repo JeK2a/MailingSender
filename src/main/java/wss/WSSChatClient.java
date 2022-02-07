@@ -2,6 +2,7 @@ package wss;
 
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
+import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -36,149 +37,163 @@ public class WSSChatClient {
         try {
             webSocketFactory = new WebSocketFactory();
 
+//            webSocketAdapter = new WebSocketAdapter() {
+//                @Override
+//                public void onTextMessage(WebSocket websocket, String message) {
+//                    // Received a text message.
+//                }
+//                @Override
+//                public void onConnectError(WebSocket websocket, WebSocketException e){
+//                    System.err.println(e.getMessage());
+//                    System.err.println(e.getLocalizedMessage());
+//                }
+//            };
+
             webSocketAdapter = new WebSocketAdapter() {
                 @Override
                 public void onTextMessage(WebSocket ws, String message) {
-                try {
-                    if (!message.contains("{")) {
-                        System.err.println("json error |||" + message + "|||");
-                        return;
-                    }
+                    try {
+                        if (message.equals("partner not registered")) {
+                            System.err.println(message);
+                            return;
+                        }
+                        if (!message.contains("{")) {
+                            System.err.println("json error |||" + message + "|||");
+                            return;
+                        }
 
-                    System.out.println("json |||" + message + "|||");
+                        System.out.println("json |||" + message + "|||");
 
-                    JSONObject jsonArray = (JSONObject) getArrayFromJSON(message);
+                        JSONObject jsonArray = (JSONObject) getArrayFromJSON(message);
 
-                    String command = String.valueOf(jsonArray.get("subject"));
-//                    String command = String.valueOf(jsonArray.get("message"));
-                    String dataIn = String.valueOf(jsonArray.get("message"));
+                        String command = String.valueOf(jsonArray.get("subject"));
+    //                    String command = String.valueOf(jsonArray.get("message"));
+                        String dataIn = String.valueOf(jsonArray.get("message"));
 
-                    System.out.println(dataIn);
+                        System.out.println(dataIn);
 
-                    int patternId;
-                    int maillistId;
-                    int taskId;
+                        int patternId;
+                        int maillistId;
+                        int taskId;
 
-                    JSONObject json;
-                    ArrayList<JSONObject> tasksList;
-                    HashMap<String, Integer> mapTask;
+                        JSONObject json;
+                        ArrayList<JSONObject> tasksList;
+                        HashMap<String, Integer> mapTask;
 
-                    System.out.println("command: " + command);
+                        System.out.println("command: " + command);
 
-                    switch (command) {
-                        // TODO get_tasks получить информацию о запущенных задачаз
-                        case "tasks":
-                            sendText("tasks", mailing.toString());
+                        switch (command) {
+                            // TODO get_tasks получить информацию о запущенных задачаз
+                            case "tasks":
+                                sendText("tasks", mailing.toString());
 
-                            break;
-                        case "tasks_start":
-//                            String jsonStr = "{\"tesks\":[{\"position\":\"1\",\"task_id\":1302,\"maillist_id\":892,\"pattern_id\":1214},{\"position\":\"2\",\"task_id\":1318,\"maillist_id\":820,\"pattern_id\":1224}],\"count_streams\":\"5\"}";
+                                break;
+                            case "tasks_start":
+                                json = (JSONObject) JSONValue.parse(dataIn);
 
-                            json = (JSONObject) JSONValue.parse(dataIn);
+                                System.out.println(json);
 
-                            System.out.println(json);
+                                int countStreams = Integer.parseInt(String.valueOf(json.get("count_streams")));
+                                tasksList        = (ArrayList<JSONObject>) json.get("tasks");
 
-                            int countStreams = Integer.parseInt(String.valueOf(json.get("count_streams")));
-                            tasksList        = (ArrayList<JSONObject>) json.get("tasks");
+                                System.out.println(tasksList);
 
-                            System.out.println(tasksList);
+                                if (tasksList != null) {
+                                    for (JSONObject jsonObject : tasksList) {
+                                        System.out.println(jsonObject);
 
-                            if (tasksList != null) {
-                                for (JSONObject jsonObject : tasksList) {
-                                    System.out.println(jsonObject);
+                                        mapTask = (HashMap<String, Integer>) jsonObject;
 
-                                    mapTask = (HashMap<String, Integer>) jsonObject;
+                                        System.out.println(mapTask.size());
 
-                                    System.out.println(mapTask.size());
+                                        patternId  = Integer.parseInt(String.valueOf(mapTask.get("pattern_id")));
+                                        maillistId = Integer.parseInt(String.valueOf(mapTask.get("maillist_id")));
+                                        taskId     = Integer.parseInt(String.valueOf(mapTask.get("task_id")));
 
-                                    patternId  = Integer.parseInt(String.valueOf(mapTask.get("pattern_id")));
-                                    maillistId = Integer.parseInt(String.valueOf(mapTask.get("maillist_id")));
-                                    taskId     = Integer.parseInt(String.valueOf(mapTask.get("task_id")));
+                                        mailing.newTask(patternId, maillistId, taskId, countStreams);
+                                        // TODO проверять запущена ли уже задача
+                                        // TODO уменьшение количество потоков, переделать на количество писем в час
 
-                                    mailing.newTask(patternId, maillistId, taskId, countStreams);
-                                    // TODO проверять запущена ли уже задача
-                                    // TODO уменьшение количество потоков, переделать на количество писем в час
-
-//                                    Thread.sleep(500);
-
-                                    sendText("tasks", mailing.toString()); // TODO подтверждение запуска
+                                        sendText("tasks", mailing.toString()); // TODO подтверждение запуска
+                                    }
+                                } else {
+                                    System.err.println("Запущенных задач не обнаружено");
                                 }
-                            } else {
-                                System.err.println("Запущенных задач не обнаружено");
-                            }
 
-                            break;
-                        case "tasks_stop":
-                            json       = (JSONObject) JSONValue.parse(dataIn);
+                                break;
+                            case "tasks_stop":
+                                json       = (JSONObject) JSONValue.parse(dataIn);
 
-                            System.out.println("json " + json);
+                                System.out.println("json " + json);
 
-                            tasksList = (ArrayList<JSONObject>) json.get("tasks");
+                                tasksList = (ArrayList<JSONObject>) json.get("tasks");
 
-                            System.out.println("tasks_list " + tasksList);
+                                System.out.println("tasks_list " + tasksList);
 
-                            System.out.println("tasks_list");
-                            System.out.println(tasksList);
+                                System.out.println("tasks_list");
+                                System.out.println(tasksList);
 
-                            if (tasksList != null) {
-                                System.out.println("tasks_list.count " + tasksList.size());
+                                if (tasksList != null) {
+                                    System.out.println("tasks_list.count " + tasksList.size());
 
 
-                                for (JSONObject jsonObject : tasksList) {
-                                    System.out.println(jsonObject);
+                                    for (JSONObject jsonObject : tasksList) {
+                                        System.out.println(jsonObject);
 
-                                    mapTask = (HashMap<String, Integer>) jsonObject;
+                                        mapTask = (HashMap<String, Integer>) jsonObject;
 
-                                    System.out.println(mapTask.size());
+                                        System.out.println(mapTask.size());
 
-                                    taskId     = Integer.parseInt(String.valueOf(mapTask.get("task_id")));
+                                        taskId     = Integer.parseInt(String.valueOf(mapTask.get("task_id")));
 
-                                    mailing.delTask(taskId);
-                                    // TODO проверять запущена ли уже задача
-                                    // TODO уменьшение количество потоков, переделать на количество писем в час
+                                        mailing.delTask(taskId);
+                                        // TODO проверять запущена ли уже задача
+                                        // TODO уменьшение количество потоков, переделать на количество писем в час
 
-//                                    Thread.sleep(500);
-
-                                    sendText("tasks", mailing.toString()); // TODO подтверждение запуска
+                                        sendText("tasks", mailing.toString()); // TODO подтверждение запуска
+                                    }
+                                } else {
+                                    System.out.println("tasks_list == null");
                                 }
-                            } else {
-                                System.out.println("tasks_list == null");
-                            }
 
-//                            Thread.sleep(500);
+                                sendText("tasks", mailing.toString()); // TODO подтверждение остановки
 
-                            sendText("tasks", mailing.toString()); // TODO подтверждение остановки
-
-                            break;
-//                            case "":
-//                              break;
-//                        case "restart": // TODO перезапускать все
-//                            break;
-                        case "exit":
-                            System.out.println("========================STOP========================");
-                            System.exit(0);
-                            break;
-                        case "close":
-                            webSocket.sendClose();
-                            break;
-                        case "info":
-//                             TODO
-                            break;
-                        case "status":
-                            break;
-                        default:
-                            System.out.println("Error command - " + command);
-                            break;
+                                break;
+    //                            case "":
+    //                              break;
+    //                        case "restart": // TODO перезапускать все
+    //                            break;
+                            case "exit":
+                                System.out.println("========================STOP========================");
+                                System.exit(0);
+                                break;
+                            case "close":
+                                webSocket.sendClose();
+                                break;
+                            case "info":
+    //                             TODO
+                                break;
+                            case "status":
+                                break;
+                            default:
+                                System.out.println("Error command - " + command);
+                                break;
+                        }
+                    } catch (Exception e) {
+                        System.err.println("XXX" + message + "XXX");
+                        e.printStackTrace();
                     }
-                } catch (Exception e) {
-                    System.err.println("XXX" + message + "XXX");
-                    e.printStackTrace();
                 }
+
+                @Override
+                public void onConnectError(WebSocket websocket, WebSocketException e){
+                    System.err.println(e.getMessage());
+                    System.err.println(e.getLocalizedMessage());
                 }
             };
 
             // Create a custom SSL context.
-            SSLContext context = NaiveSSLContext.getInstance("TLS");
+            SSLContext context = NaiveSSLContext.getInstance("TLS"); // TODO постараться убрать дополнительный файл
 
             // Set the custom SSL context.
             webSocketFactory.setSSLContext(context);
@@ -202,8 +217,10 @@ public class WSSChatClient {
 
             System.out.println(SettingsMail.getUrlWSS());
 
+            webSocketFactory.setConnectionTimeout(120000);
             webSocket = webSocketFactory.createSocket(SettingsMail.getUrlWSS());
             webSocket.addListener(webSocketAdapter);
+
             webSocket.connect();
             result = true;
 
