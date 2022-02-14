@@ -136,7 +136,6 @@ public class WSSChatClient {
                                 if (tasksList != null) {
                                     System.out.println("tasks_list.count " + tasksList.size());
 
-
                                     for (JSONObject jsonObject : tasksList) {
                                         System.out.println(jsonObject);
 
@@ -144,7 +143,7 @@ public class WSSChatClient {
 
                                         System.out.println(mapTask.size());
 
-                                        taskId     = Integer.parseInt(String.valueOf(mapTask.get("task_id")));
+                                        taskId = Integer.parseInt(String.valueOf(mapTask.get("task_id")));
 
                                         mailing.delTask(taskId);
                                         // TODO проверять запущена ли уже задача

@@ -2,8 +2,12 @@ package threads;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
@@ -53,6 +57,7 @@ public class Sender implements Runnable {
         System.out.println("sender run");
 
         try {
+//            CloseableHttpResponse response = client.execute(request);
             List<BasicNameValuePair> params = new ArrayList<>(4); // Request parameters and other properties.
 
             params.add(new BasicNameValuePair("type", "email"));
@@ -65,9 +70,21 @@ public class Sender implements Runnable {
 
             httpPost.setEntity(new UrlEncodedFormEntity(params, "UTF-8"));
 
+            // TODO params +
+//            HttpRequestBase request = new HttpGet(SettingsMail.getUrl()); //or HttpPost
+
+//            RequestConfig.Builder requestConfig = RequestConfig.custom(); // TODO вернуть
+//            requestConfig.setConnectTimeout(60 * 1000);
+//            requestConfig.setConnectionRequestTimeout(60 * 1000);
+//            requestConfig.setSocketTimeout(60 * 1000);
+
+//            request.setConfig(requestConfig.build()); -
+//            httpPost.setConfig(requestConfig.build()); +
+            // TODO params +
+
             while (!stop && !end) {
                 //Execute and get the response.
-                HttpResponse httpResponse = httpClient.execute(httpPost);
+                HttpResponse httpResponse = httpClient.execute(httpPost); // TODO timeout
                 HttpEntity httpEntity     = httpResponse.getEntity();
                 StringBuilder response    = new StringBuilder();
 
@@ -83,10 +100,15 @@ public class Sender implements Runnable {
 
 //                System.out.println(response);
 
+                if (response.toString().toCharArray()[0] != '{') {
+                    System.err.println("sender json error |||" + response + "|||");
+                    continue;
+                }
+
                 JSONObject jsonArray = (JSONObject) getArrayFromJSON(response);
                 String answer        = String.valueOf(jsonArray.get("answer"));
 
-                System.out.println(answer);
+//                System.out.println(answer);
 
                 switch (answer) {
                     case "Все задачи вополнены":
@@ -94,11 +116,11 @@ public class Sender implements Runnable {
                         end  = true;
                         return;
                     case "получатель в блеклисте":
-                        break;
+                        continue;
                     default:
                         System.out.println(senderNumber + " count - " + ++j);
 
-                        int count       = Integer.parseInt(String.valueOf(jsonArray.get("count")));
+                        int count      = Integer.parseInt(String.valueOf(jsonArray.get("count")));
                         int countDone  = Integer.parseInt(String.valueOf(jsonArray.get("count_done")));
                         int countError = Integer.parseInt(String.valueOf(jsonArray.get("count_error")));
                         int countTotal = Integer.parseInt(String.valueOf(jsonArray.get("count_total")));
@@ -131,15 +153,15 @@ public class Sender implements Runnable {
             System.out.println("sender finally");
         }
 
-//        return;
     }
 
     private static Object getArrayFromJSON(String jsonStr) {
         try {
             return new JSONParser().parse(jsonStr);
         } catch (ParseException e) {
+            System.err.println(e);
+            System.err.println(jsonStr);
             e.printStackTrace();
-            System.out.println(e);
 
             return false;
         }

@@ -1,6 +1,7 @@
 package threads;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class Task implements Runnable {
@@ -52,15 +53,27 @@ public class Task implements Runnable {
                     break;
                 }
 
-                for (Map.Entry<Integer, Sender> entry : mapSenders.entrySet()) {
-                    int senderId  = entry.getKey();
-                    Sender sender = mapSenders.get(senderId);
+                Iterator<Map.Entry<Integer, Sender>> iterator = mapSenders.entrySet().iterator();
+
+                while (iterator.hasNext()) {
+                    Sender sender = iterator.next().getValue();
 
                     if (!cheackSender(sender)) {
                         mapSenders.remove(sender.getSenderNumber());
                         countSenders--;
                     }
+
                 }
+
+//                for (Map.Entry<Integer, Sender> entry : mapSenders.entrySet()) {
+//                    int senderId  = entry.getKey();
+//                    Sender sender = mapSenders.get(senderId);
+//
+//                    if (!cheackSender(sender)) {
+//                        mapSenders.remove(sender.getSenderNumber());
+//                        countSenders--;
+//                    }
+//                }
 
                 // TODO проверять количество запущенных потоков
 
@@ -70,7 +83,6 @@ public class Task implements Runnable {
                     e.printStackTrace();
                 }
             }
-
         } catch (Throwable e) {
             System.err.println(e.getMessage());
             System.err.println(e.getLocalizedMessage());
@@ -138,9 +150,9 @@ public class Task implements Runnable {
         System.out.println("count_senders      = " + countSenders);
         System.out.println("map_senders.size() = " + mapSenders.size());
 
-        if (countSenders == 0) {
+        if (countSenders <= 0) {
             mapSenders = null;
-            stop        = true;
+            stop       = true;
 
             return true;
         } else {
