@@ -3,6 +3,7 @@ package threads;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 public class Task implements Runnable {
 
@@ -21,9 +22,9 @@ public class Task implements Runnable {
     private int numberSender = 0;
 
     public Task(int patternId, int maillistId, int taskId, int countStreams) {
-        this.patternId = patternId;
-        this.maillistId = maillistId;
-        this.taskId = taskId;
+        this.patternId    = patternId;
+        this.maillistId   = maillistId;
+        this.taskId       = taskId;
         this.countStreams = countStreams; // TODO
 
         count++;
@@ -35,6 +36,7 @@ public class Task implements Runnable {
     @Override
     public void run() {
         System.out.println("task run");
+
         try {
             System.out.println(countStreams);
 
@@ -53,17 +55,17 @@ public class Task implements Runnable {
                     break;
                 }
 
-                Iterator<Map.Entry<Integer, Sender>> iterator = mapSenders.entrySet().iterator();
+//                Iterator<Map.Entry<Integer, Sender>> iterator = mapSenders.entrySet().iterator();
 
-                while (iterator.hasNext()) {
-                    Sender sender = iterator.next().getValue();
-
-                    if (!cheackSender(sender)) {
-                        mapSenders.remove(sender.getSenderNumber());
-                        countSenders--;
-                    }
-
-                }
+//                while (iterator.hasNext()) {
+//                    Sender sender = iterator.next().getValue();
+//
+//                    if (!cheackSender(sender)) {
+//                        mapSenders.remove(sender.getSenderNumber());
+//                        countSenders--;
+//                    }
+//
+//                }
 
 //                for (Map.Entry<Integer, Sender> entry : mapSenders.entrySet()) {
 //                    int senderId  = entry.getKey();
@@ -79,6 +81,30 @@ public class Task implements Runnable {
 
                 try {
                     Thread.sleep(10000);
+
+                    if (mapSenders != null) {
+
+                        System.out.println();
+                        System.out.println("mapSenders count " + mapSenders.size());
+
+                        for (Map.Entry<Integer, Sender> entry : mapSenders.entrySet()) {
+                            int senderId = entry.getKey();
+
+                            Sender sender = mapSenders.get(senderId);
+
+                            int senderId_tmp = sender.getSenderNumber();
+
+                            System.out.println(senderId + " " + senderId_tmp + " line " + sender.getLine());
+
+//                        if (!cheackSender(sender)) {
+//                            mapSenders.remove(sender.getSenderNumber());
+//                            countSenders--;
+//                        }
+                        }
+                    } else {
+                        System.out.println("mapSenders == null");
+                    }
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -134,9 +160,9 @@ public class Task implements Runnable {
 
             if (threadTmp.isAlive()) {
                 if (threadTmp.isInterrupted()) {
-                    System.out.println("thread_tmp.isInterrupted() true");
+                    System.out.println("thread_tmp.isInterrupted() true"); // TODO ???
                 } else {
-                    System.out.println("thread_tmp.isInterrupted() false");
+                    System.out.println("thread_tmp.isInterrupted() false"); // TODO ??? thread_tmp.isInterrupted() false
                 }
             }
 
@@ -193,6 +219,16 @@ public class Task implements Runnable {
 
         return run;
     }
+
+//    public void showSenders() {
+//        Iterator<Map.Entry<Integer, Sender>> iterator = mapSenders.entrySet().iterator();
+//
+//        while (iterator.hasNext()) {
+//            Sender sender = iterator.next().getValue();
+//
+//            sender.
+//        }
+//    }
 
     @Override
     public String toString() {

@@ -38,18 +38,20 @@ public class Sender implements Runnable {
 
     Thread thread;
 
+    private int line = 0;
+
     public Sender(int patternId, int maillistId, int taskId) {
         this.patternId  = patternId;
         this.maillistId = maillistId;
         this.taskId     = taskId;
 
-        senderNumber = number;
+        senderNumber = number++;
 
         thread = new Thread(this, "Sender " + senderNumber);
         thread.start();
 
         count++;
-        number++;
+//        number++;
     }
 
     @Override
@@ -57,6 +59,8 @@ public class Sender implements Runnable {
         System.out.println("sender run");
 
         try {
+            line = 1;
+
 //            CloseableHttpResponse response = client.execute(request);
             List<BasicNameValuePair> params = new ArrayList<>(4); // Request parameters and other properties.
 
@@ -73,86 +77,155 @@ public class Sender implements Runnable {
             // TODO params +
 //            HttpRequestBase request = new HttpGet(SettingsMail.getUrl()); //or HttpPost
 
-//            RequestConfig.Builder requestConfig = RequestConfig.custom(); // TODO вернуть
+            RequestConfig.Builder requestConfig = RequestConfig.custom(); // TODO вернуть
 //            requestConfig.setConnectTimeout(60 * 1000);
-//            requestConfig.setConnectionRequestTimeout(60 * 1000);
+            requestConfig.setConnectionRequestTimeout(20 * 1000);
 //            requestConfig.setSocketTimeout(60 * 1000);
-
-//            request.setConfig(requestConfig.build()); -
-//            httpPost.setConfig(requestConfig.build()); +
+//
+////            request.setConfig(requestConfig.build()); -
+            httpPost.setConfig(requestConfig.build());
             // TODO params +
 
             while (!stop && !end) {
+                line = 2;
+//                String test = senderNumber + " ";
+//                test += "1";
+                System.out.println();
+
+                if (senderNumber > 0) {
+                    System.out.printf("%-" + senderNumber + "s" + senderNumber + " 1 sender while start", " ");
+                } else {
+                    System.out.print(senderNumber + " 1 sender while start");
+                }
                 //Execute and get the response.
+                line = 3;
                 HttpResponse httpResponse = httpClient.execute(httpPost); // TODO timeout
+//              TODO  org.apache.http.NoHttpResponseException: my.tdfort.ru:443 failed to respond
+
+                line = 4;
                 HttpEntity httpEntity     = httpResponse.getEntity();
+                line = 5;
                 StringBuilder response    = new StringBuilder();
+                line = 6;
 
                 if (httpEntity != null) {
+                    line = 7;
                     int ch;
 
                     try (InputStream inputStream = httpEntity.getContent()) {
+                        line = 8;
                         while ((ch = inputStream.read()) != -1) {
+                            line = 9;
                             response.append((char) ch);
+                            line = 10;
                         }
+                        line = 11;
                     }
+                    line = 12;
                 }
 
 //                System.out.println(response);
 
+                line = 13;
+
                 if (response.toString().toCharArray()[0] != '{') {
-                    System.err.println("sender json error |||" + response + "|||");
+                    line = 14;
+                    System.err.println(senderNumber + " sender json error |||" + response + "|||");
+                    line = 15;
                     continue;
                 }
 
+                line = 16;
+
                 JSONObject jsonArray = (JSONObject) getArrayFromJSON(response);
+                line = 17;
                 String answer        = String.valueOf(jsonArray.get("answer"));
+                line = 18;
 
 //                System.out.println(answer);
 
                 switch (answer) {
                     case "Все задачи вополнены":
+                        line = 19;
                         stop = true;
                         end  = true;
                         return;
                     case "получатель в блеклисте":
+                        line = 20;
                         continue;
                     default:
-                        System.out.println(senderNumber + " count - " + ++j);
+                        line = 21;
+//                        System.out.println(senderNumber + " 2 count - " + ++j);
 
+                        System.out.println();
+
+                        if (senderNumber > 0) {
+                            System.out.printf("%-" + senderNumber + "s" + senderNumber + " 2 count " + ++j, " ");
+                        } else {
+                            System.out.printf(senderNumber + " 2 count " + ++j);
+                        }
+
+//                        System.out.printf("%-" + senderNumber + "s" + senderNumber + " 2 count " + ++j, " ");
+//                        test += "2";
+
+                        line = 22;
                         int count      = Integer.parseInt(String.valueOf(jsonArray.get("count")));
                         int countDone  = Integer.parseInt(String.valueOf(jsonArray.get("count_done")));
                         int countError = Integer.parseInt(String.valueOf(jsonArray.get("count_error")));
                         int countTotal = Integer.parseInt(String.valueOf(jsonArray.get("count_total")));
+                        line = 23;
 
                         if (countDone >= countTotal) {
+                            line = 24;
                             stop = true;
                             end  = true;
 
                             return;
                         }
+                        line = 25;
 
                         break;
                 }
 
+                line = 26;
+
 //                System.out.println(answer);
 
-                System.out.println("sender while");
+//                System.out.println(senderNumber + " 3 sender while end");
+
+                System.out.println();
+
+                if (senderNumber > 0) {
+                    System.out.printf("%-" + senderNumber + "s" + senderNumber + " 3 sender while end", " ");
+                } else {
+                    System.out.print(senderNumber + " 3 sender while end");
+                }
+
+//                System.out.printf("%-" + senderNumber + "s" + senderNumber + " 3 sender while end", " ");
+//                test += "3";
+//
+//                System.out.println(test);
+                line = 27;
             }
 
-            System.out.println("sender break");
+            line = 28;
+
+            System.out.println(senderNumber + "sender break");
             System.err.println("end");
+
+            line = 29;
         } catch (Throwable e) {
+            line = 30;
             System.err.println(e.getMessage());
             System.err.println(e.getLocalizedMessage());
             e.printStackTrace();
         } finally {
+            line = 30;
             stop = true;
             count--;
 
-            System.out.println("sender finally");
+            System.out.println(senderNumber + "sender finally");
         }
-
     }
 
     private static Object getArrayFromJSON(String jsonStr) {
@@ -223,4 +296,18 @@ public class Sender implements Runnable {
     public String toString() {
         return "sn:" + senderNumber;
     }
+
+    public int getLine() {
+        return line;
+    }
+
+    public static int getNumber() {
+        return number;
+    }
+
+    public static int getJ() {
+        return j;
+    }
+
+
 }

@@ -23,11 +23,11 @@ public class MailingSender {
                     e.printStackTrace();
                 }
 
-                if (!wssChatClient.checkWSS()) {
-                    wssChatClient.connectToWSS();
-                }
+//                if (!wssChatClient.checkWSS()) { // TODO return
+//                    wssChatClient.connectToWSS();
+//                }
 //                wssChatClient.connectToWSS(); // TODO проверять и перезапускать WSS
-                showThreads();
+//                showThreads();
 
                 wssChatClient.sendText("tasks", mailing.toString());
             }

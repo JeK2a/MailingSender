@@ -146,6 +146,7 @@ public class WSSChatClient {
                                         taskId = Integer.parseInt(String.valueOf(mapTask.get("task_id")));
 
                                         mailing.delTask(taskId);
+                                        // TODO проверять если задача в списке
                                         // TODO проверять запущена ли уже задача
                                         // TODO уменьшение количество потоков, переделать на количество писем в час
 
@@ -239,11 +240,7 @@ public class WSSChatClient {
     }
 
     public boolean checkWSS() {
-        if (webSocket != null && webSocket.isOpen()) {
-            return true;
-        }
-
-        return false;
+        return webSocket != null && webSocket.isOpen();
     }
 
     public boolean closeWSS() {
@@ -254,6 +251,7 @@ public class WSSChatClient {
         if (webSocket != null && webSocket.isOpen()) {
             text = forJSON(text);
             webSocket.sendText("{\"to\":\"worker:javamail_mailing\", \"subject\":\"" + subject + "\", \"message\":\"" + text + "\"}");
+//            webSocket.sendText("{\"subject\":\"" + subject + "\", \"message\":\"" + text + "\"}");
         } else {
             System.err.println("error send");
         }
